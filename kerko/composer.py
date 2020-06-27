@@ -1314,7 +1314,7 @@ class Composer:
             self.add_facet(
                 FlatFacetSpec(
                     key='facet_tag',
-                    title=_('Topic'),
+                    title=_('Tags'),
                     filter_key='topic',
                     weight=100,
                     field_type=ID(stored=True),
