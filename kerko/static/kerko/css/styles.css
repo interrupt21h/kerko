@@ -16,7 +16,7 @@
   content: "\f107";  /* fa-angle-down */
 }
 .collapse-toggle.collapsed > .fas.collapse-icon:before {
-  content: "\f104";  /* fa-angle-left */
+  content: "\f105";  /* fa-angle-right */
 }
 .break-word {
   word-wrap: break-word;  /* Older, non-standard name for overflow-wrap. */

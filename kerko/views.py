@@ -94,7 +94,7 @@ def search():
         if context['is_searching']:
             context['title'] = ngettext('Result', 'Results', total_count)
         else:
-            context['title'] = gettext('Full bibliography')
+            context['title'] = gettext('Full library')
     else:
         context['title'] = gettext('Your search did not match any resources')
     return render_template(
