@@ -10,7 +10,28 @@
 {%- block metas %}
     {{- super() }}
     {%- include "kerko/_search-metas.html.jinja2" %}
+    <!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Preview</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <img id="pdfpreview" class="mw-100 mh-100" data-pdf-thumbnail-file="" src="{{ url_for('kerko.static', filename='kerko/img/140blank.png') }}">
+      </div>
+      <div class="modal-footer">
+      <!--  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>-->
+      </div>
+    </div>
+  </div>
+</div>
 {%- endblock metas %}
+
 
 {%- block content_header %}
     <div class="my-2 row">
@@ -54,6 +75,9 @@
         </div>
     {%- endblock search_criteria %}
     {%- block search_results %}
+
+
+
         <div class="my-2 row">
             <div class="col-auto mr-auto">
                 <h2 class="{% block results_heading_classes %}d-inline mb-2{% endblock %}">{{ title }}
@@ -82,10 +106,19 @@
                             {{- result.bib|safe -}}
                         {%- else -%}
                             <div class="d-flex">
+                                {%- if result.attachments|length > 0 %}
+                                
+                                    <img data-toggle="modal" data-target="#exampleModal" class="mr-4" width=140 height=180 data-pdf-thumbnail-file="{{ url_for('kerko.item_attachment_download', item_id=result.id, attachment_id=result.attachments[0]['id'], attachment_filename=result.attachments[0]['filename']) }}" data-whatever="{{ url_for('kerko.item_attachment_download', item_id=result.id, attachment_id=result.attachments[0]['id'], attachment_filename=result.attachments[0]['filename']) }}" src="{{ url_for('kerko.static', filename='kerko/img/140blank.png') }}">
+                                 
+                                <br>
+
+                                {%- endif %}
+
                                 <a class="d-block mw-100 mr-auto" href="{{ result.url }}" title="{{ _('View details') }}">
                                     {{- badges(result, mode='result') -}}
                                     {{- result.bib|safe -}}
                                 </a>
+                                
                                 {%- if result.attachments|length > 1 %}
                                     <div class="d-print-none ml-2">
                                         <div class="dropdown">
@@ -104,12 +137,16 @@
                                     </div>
                                 {%- elif result.attachments|length == 1 %}
                                     <div class="d-print-none ml-2">
+                                       
                                         <a class="{% block attachment_link_btn_classes %}btn btn-primary text-nowrap{% endblock %}" href="{{ url_for('kerko.item_attachment_download', item_id=result.id, attachment_id=result.attachments[0]['id'], attachment_filename=result.attachments[0]['filename']) }}"{% if config.KERKO_DOWNLOAD_ATTACHMENT_NEW_WINDOW %} target="_blank"{% endif %} {{ title_aria_label(_('Read \'{}\'').format(result.attachments[0]['filename']|escape)) }}>
                                             <span class="fas fa-file text-white" aria-hidden="true"></span>
                                             <span class="d-none d-md-inline text-white">{{ _('Read') }}</span>
+                                            
                                         </a>
                                     </div>
                                 {%- endif %}
+                                
+
                                 <span>{{- result.coins|safe -}}</span>
                             </div>
                         {%- endif -%}
@@ -205,6 +242,78 @@
 
 {%- block body_scripts %}
     {{- super() }}
+    {%- block kerko_pdfthumb_js %}
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.0.943/pdf.js"></script>
+        <script src="{{ url_for('kerko.static', filename='kerko/js/pdfThumbnails.js') }}"></script>
+        
+
+        <script>
+            $('#exampleModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget) ;// Button that triggered the modal
+            var pdf_attachment = button.data('whatever');// Extract info from data-* attributes
+            // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
+            // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
+            var modal = $(this);
+
+            modal.find('.modal-body img').attr("src", "");
+            modal.find('.modal-body img').attr("data-pdf-thumbnail-file2", pdf_attachment);
+            
+            var filePath = pdf_attachment;
+            var imgWidth = null;
+            var imgHeight = null;
+            
+            updatepdfpreview();
+
+            })
+
+            var updatepdfpreview = function(){
+
+            if (typeof pdfjsLib === 'undefined') {
+                throw Error("pdf.js is not loaded. Please include it before pdfThumbnails.js.");
+            }
+            pdfjsLib.disableWorker = true;
+
+            // select all img elements with data-pdf-thumbnail-file attribute
+            var nodesArray = Array.prototype.slice.call(document.querySelectorAll('img[data-pdf-thumbnail-file2]'));
+
+            nodesArray.forEach(function(element) {
+                var filePath = element.getAttribute('data-pdf-thumbnail-file2');
+                var imgWidth = element.getAttribute('data-pdf-thumbnail-width');
+                var imgHeight = element.getAttribute('data-pdf-thumbnail-height');
+
+                pdfjsLib.getDocument(filePath).then(function (pdf) {
+                    pdf.getPage(1).then(function (page) {
+                        var canvas = document.createElement("canvas");
+                        var viewport = page.getViewport(1.0);
+                        var context = canvas.getContext('2d');
+
+                        if (imgWidth) {
+                            viewport = page.getViewport(imgWidth / viewport.width);
+                        } else if (imgHeight) {
+                            viewport = page.getViewport(imgHeight / viewport.height);
+                        }
+
+                        canvas.height = viewport.height;
+                        canvas.width = viewport.width;
+
+                        page.render({
+                            canvasContext: context,
+                            viewport: viewport
+                        }).then(function () {
+                            element.src = canvas.toDataURL();
+                        });
+                    }).catch(function() {
+                        console.log("pdfThumbnails error: could not open page 1 of document " + filePath + ". Not a pdf ?");
+                    });
+                }).catch(function() {
+                    console.log("pdfThumbnails error: could not find or open document " + filePath + ". Not a pdf ?");
+                });
+            });
+        };
+
+            
+        </script>
+    {%- endblock kerko_pdfthumb_js %}
     {%- block kerko_search_js %}
         <script src="{{ url_for('kerko.static', filename='kerko/js/search.js') }}"></script>
     {%- endblock kerko_search_js %}
