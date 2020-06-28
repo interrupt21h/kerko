@@ -108,8 +108,8 @@
                             <div class="d-flex">
                                 {%- if result.attachments|length > 0 %}
                                 
-                                    <img data-toggle="modal" data-target="#exampleModal" class="mr-4" width=140 height=180 data-pdf-thumbnail-file="{{ url_for('kerko.item_attachment_download', item_id=result.id, attachment_id=result.attachments[0]['id'], attachment_filename=result.attachments[0]['filename']) }}" data-whatever="{{ url_for('kerko.item_attachment_download', item_id=result.id, attachment_id=result.attachments[0]['id'], attachment_filename=result.attachments[0]['filename']) }}" src="{{ url_for('kerko.static', filename='kerko/img/140blank.png') }}">
-                                 
+                                    <!--img data-toggle="modal" data-target="#exampleModal" class="mr-4" width=140 height=180 data-pdf-thumbnail-file="{{ url_for('kerko.item_attachment_download', item_id=result.id, attachment_id=result.attachments[0]['id'], attachment_filename=result.attachments[0]['filename']) }}" data-whatever="{{ url_for('kerko.item_attachment_download', item_id=result.id, attachment_id=result.attachments[0]['id'], attachment_filename=result.attachments[0]['filename']) }}" src="{{ url_for('kerko.static', filename='kerko/img/140blank.png') }}"-->
+                                    <img data-toggle="modal" data-target="#exampleModal" class="mr-4" width=140 height=180  src="/library/static/kerko/attachments/{{ result.attachments[0]['id'] }}.png" data-whatever="/library/static/kerko/attachments/{{ result.attachments[0]['id'] }}.png">
                                 <br>
 
                                 {%- endif %}
@@ -255,14 +255,14 @@
             // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
             var modal = $(this);
 
-            modal.find('.modal-body img').attr("src", "");
-            modal.find('.modal-body img').attr("data-pdf-thumbnail-file2", pdf_attachment);
+            modal.find('.modal-body img').attr("src", pdf_attachment);
+            //modal.find('.modal-body img').attr("data-pdf-thumbnail-file2", pdf_attachment);
             
-            var filePath = pdf_attachment;
-            var imgWidth = null;
-            var imgHeight = null;
+            //var filePath = pdf_attachment;
+            //var imgWidth = null;
+            //var imgHeight = null;
             
-            updatepdfpreview();
+            //updatepdfpreview();
 
             })
 
